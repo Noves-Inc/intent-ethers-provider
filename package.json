@@ -1,8 +1,7 @@
 {
   "name": "@noves/intent-ethers-provider",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "High-performance ethers.js provider for intent-based interactions",
-  "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -10,12 +9,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "files": [
     "dist"
   ],
+  "sideEffects": false,
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

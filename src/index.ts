@@ -1,4 +1,5 @@
-export { IntentProvider } from './providers/IntentProvider';
+import { IntentProvider } from './providers/IntentProvider';
+export { IntentProvider };
 export * from './types/provider';
 export * from './types/jsonrpc';
 export * from './types/recentTxs';
