@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { IntentProvider } from '../../../src/providers/IntentProvider'
 import { TokenPriceTick } from '../../../src/types/tokenPrice'
 import { HistoricalTokenPrice } from '../../../src/types/historicalTokenPrice'
+import { TranslatedTx } from '../../../src/types/chainNewTxs'
 
 vi.mock('../../../src/internal/transport/HttpSubprovider', () => {
   return {
@@ -232,4 +233,93 @@ describe('IntentProvider', () => {
       })
     })
   })
+
+  describe('getChainNewTxs', () => {
+    it('should stream new transactions', async () => {
+      const mockTransactions: TranslatedTx[] = [
+        {
+          txTypeVersion: 1,
+          chain: 'ethereum',
+          accountAddress: '0x1234567890123456789012345678901234567890',
+          classificationData: {
+            type: 'transfer',
+            source: {
+              type: 'onchain'
+            },
+            description: 'Transfer 1 ETH',
+            protocol: {
+              name: null
+            },
+            sent: [{
+              action: 'transfer',
+              from: {
+                name: 'Alice',
+                address: '0x1234567890123456789012345678901234567890'
+              },
+              to: {
+                name: 'Bob',
+                address: '0x0987654321098765432109876543210987654321'
+              },
+              amount: '1000000000000000000',
+              token: {
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+                address: '0x0000000000000000000000000000000000000000'
+              }
+            }],
+            received: []
+          },
+          rawTransactionData: {
+            transactionHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+            fromAddress: '0x1234567890123456789012345678901234567890',
+            toAddress: '0x0987654321098765432109876543210987654321',
+            blockNumber: 12345678,
+            gas: 21000,
+            gasUsed: 21000,
+            gasPrice: 20000000000,
+            transactionFee: {
+              amount: '420000000000000',
+              token: {
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+                address: '0x0000000000000000000000000000000000000000'
+              }
+            },
+            timestamp: 1234567890
+          }
+        }
+      ];
+
+      // Get the actual WebSocketSubprovider instance used by IntentProvider
+      const wsProvider = (provider as any).wsProvider;
+      
+      // Mock the stream method on the actual instance
+      const mockStream = async function* () {
+        for (const tx of mockTransactions) {
+          yield tx;
+        }
+      };
+      vi.mocked(wsProvider.stream).mockImplementation(mockStream);
+
+      const txStream = provider.getChainNewTxs({
+        chain: 'ethereum'
+      });
+
+      const results: TranslatedTx[] = [];
+      for await (const tx of txStream) {
+        results.push(tx);
+      }
+
+      expect(results).toEqual(mockTransactions);
+      expect(wsProvider.stream).toHaveBeenCalledWith('/intents', {
+        id: 'chain-new-txs',
+        params: {
+          chain: 'eth'
+        },
+        cusRateLimit: -1
+      });
+    });
+  });
 }) 

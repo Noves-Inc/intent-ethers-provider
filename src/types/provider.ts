@@ -2,6 +2,7 @@ import { Provider } from 'ethers';
 import { TranslatedTx } from './recentTxs';
 import { TokenPriceTick, TokenPriceTicksParams } from './tokenPrice';
 import { HistoricalTokenPrice, HistoricalTokenPricesParams } from './historicalTokenPrice';
+import { ChainNewTxsParams } from './chainNewTxs';
 
 /**
  * Extended provider interface that adds intent-specific functionality
@@ -105,4 +106,30 @@ export interface IntentProviderExtended extends Provider {
    * ```
    */
   getHistoricalTokenPrices(params: HistoricalTokenPricesParams): AsyncIterable<HistoricalTokenPrice>;
+
+  /**
+   * Retrieves a stream of new classified transactions on a given chain
+   * @param params - The parameters for the chain-new-txs request
+   * @returns AsyncIterable that yields translated transactions as they arrive
+   * @throws {IntentProviderError} If the request fails or response is invalid
+   * 
+   * @remarks
+   * This method establishes a WebSocket connection to stream new transactions
+   * as they are classified on the specified chain. The stream will continue
+   * until the consumer stops iterating or the connection is closed.
+   * 
+   * @example
+   * ```typescript
+   * // Get stream of new transactions
+   * const txStream = await provider.getChainNewTxs({
+   *   chain: 'ethereum'
+   * });
+   * 
+   * // Handle each new transaction
+   * for await (const tx of txStream) {
+   *   console.log(`New transaction: ${tx.classificationData.description}`);
+   * }
+   * ```
+   */
+  getChainNewTxs(params: ChainNewTxsParams): AsyncIterable<TranslatedTx>;
 } 

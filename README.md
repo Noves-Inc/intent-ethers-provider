@@ -35,6 +35,16 @@ const priceStream = await provider.getTokenPriceTicks({
 for await (const priceTick of priceStream) {
   console.log(`Current price: ${priceTick.price.amount} ${priceTick.price.currency}`);
 }
+
+// Get stream of new transactions on a chain
+const txStream = await provider.getChainNewTxs({
+  chain: 'ethereum'
+});
+
+// Handle new transactions as they arrive
+for await (const tx of txStream) {
+  console.log(`New transaction: ${tx.classificationData.description}`);
+}
 ```
 
 ## API Reference
@@ -77,6 +87,16 @@ const historicalPrices = await provider.getHistoricalTokenPrices({
   hour_interval: 12
 });
 // Returns: AsyncIterable<HistoricalTokenPrice>
+```
+
+### `getChainNewTxs(params: ChainNewTxsParams)`
+Streams new transactions as they are classified on a given chain. Returns an async iterable that yields translated transactions with full classification data.
+
+```typescript
+const txStream = await provider.getChainNewTxs({
+  chain: 'ethereum'
+});
+// Returns: AsyncIterable<TranslatedTx>
 ```
 
 ## Error Handling

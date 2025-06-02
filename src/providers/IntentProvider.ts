@@ -6,6 +6,7 @@ import { createNetworkError, createInvalidResponseError } from '../types/errors'
 import { RecentTxsResponse, TranslatedTx } from '../types/recentTxs';
 import { TokenPriceTick, TokenPriceTicksParams } from '../types/tokenPrice';
 import { HistoricalTokenPrice, HistoricalTokenPricesParams } from '../types/historicalTokenPrice';
+import { ChainNewTxsParams } from '../types/chainNewTxs';
 
 /**
  * IntentProvider is a custom provider implementation that extends ethers.js AbstractProvider.
@@ -201,6 +202,48 @@ export class IntentProvider extends AbstractProvider implements IntentProviderEx
         throw createNetworkError(`Failed to fetch historical token prices: ${error.message}`);
       }
       throw createInvalidResponseError('Failed to fetch historical token prices');
+    }
+  }
+
+  /**
+   * Retrieves a stream of new classified transactions on a given chain
+   * @param params - The parameters for the chain-new-txs request
+   * @returns AsyncIterable that yields translated transactions as they arrive
+   * @throws {IntentProviderError} If the request fails or response is invalid
+   * 
+   * @remarks
+   * This method establishes a WebSocket connection to stream new transactions
+   * as they are classified on the specified chain. The stream will continue
+   * until the consumer stops iterating or the connection is closed.
+   * 
+   * @example
+   * ```typescript
+   * // Get stream of new transactions
+   * const txStream = await provider.getChainNewTxs({
+   *   chain: 'ethereum'
+   * });
+   * 
+   * // Handle each new transaction
+   * for await (const tx of txStream) {
+   *   console.log(`New transaction: ${tx.classificationData.description}`);
+   * }
+   * ```
+   */
+  async *getChainNewTxs(params: ChainNewTxsParams): AsyncIterable<TranslatedTx> {
+    try {
+      const normalizedChain = this.normalizeChainName(params.chain);
+      yield* this.wsProvider.stream<TranslatedTx>('/intents', {
+        id: 'chain-new-txs',
+        params: {
+          chain: normalizedChain
+        },
+        cusRateLimit: -1
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw createNetworkError(`Failed to fetch chain new transactions: ${error.message}`);
+      }
+      throw createInvalidResponseError('Failed to fetch chain new transactions');
     }
   }
 } 
