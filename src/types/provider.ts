@@ -1,6 +1,6 @@
 import { Provider } from 'ethers';
 import { TranslatedTx } from './recentTxs';
-import { TokenPriceTick, TokenPriceTicksParams } from './tokenPrice';
+import { TokenPriceTick, TokenPriceTicksParams, TokenPrice, TokenPriceParams } from './tokenPrice';
 import { HistoricalTokenPrice, HistoricalTokenPricesParams } from './historicalTokenPrice';
 import { ChainNewTxsParams } from './chainNewTxs';
 
@@ -132,4 +132,35 @@ export interface IntentProviderExtended extends Provider {
    * ```
    */
   getChainNewTxs(params: ChainNewTxsParams): AsyncIterable<TranslatedTx>;
+
+  /**
+   * Retrieves the current or historical price of a token at a specific timestamp
+   * @param params - The parameters for the token price request
+   * @returns Promise resolving to detailed token price information
+   * @throws {IntentProviderError} If the request fails or response is invalid
+   * 
+   * @remarks
+   * This method fetches the price of a token at the given timestamp, or the current price 
+   * if no timestamp is provided (automatically uses current Unix timestamp). The response 
+   * includes detailed information about the pricing source, exchange, and liquidity data.
+   * 
+   * @example
+   * ```typescript
+   * // Get current token price
+   * const currentPrice = await provider.getTokenPrice({
+   *   chain: 'ethereum',
+   *   token_address: '0xA0b86a33E6441d8f8C7d8c8E8E8E8E8E8E8E8E8E'
+   * });
+   * console.log(`Current price: ${currentPrice.price.amount} ${currentPrice.price.currency}`);
+   * 
+   * // Get historical token price
+   * const historicalPrice = await provider.getTokenPrice({
+   *   chain: 'ethereum', 
+   *   token_address: '0xA0b86a33E6441d8f8C7d8c8E8E8E8E8E8E8E8E8E',
+   *   timestamp: '1640995200'
+   * });
+   * console.log(`Price at timestamp: ${historicalPrice.price.amount} ${historicalPrice.price.currency}`);
+   * ```
+   */
+  getTokenPrice(params: TokenPriceParams): Promise<TokenPrice>;
 } 

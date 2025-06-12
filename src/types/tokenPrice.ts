@@ -78,4 +78,40 @@ export interface TokenPriceTicksParams {
   chain: string;
   /** Token contract address */
   token_address: string;
+}
+
+/**
+ * Represents a detailed token price response from the token-price intent
+ * Contains complete price information including exchange and liquidity data
+ */
+export interface TokenPrice {
+  /** The blockchain network identifier */
+  chain: string;
+  /** Block number where the price was recorded */
+  block: string;
+  /** Token information */
+  token: PriceToken;
+  /** Current price information */
+  price: Price;
+  /** Pricing source information */
+  pricedBy: PricedBy;
+  /** Method used to determine the price */
+  priceType: string;
+  /** Current status of the price data */
+  priceStatus: string;
+  /** Unix timestamp when the price was recorded */
+  timestamp: number;
+}
+
+/**
+ * Parameters for requesting a single token price
+ * Used to specify which token's price to retrieve at a specific time
+ */
+export interface TokenPriceParams {
+  /** Chain identifier */
+  chain: string;
+  /** Token contract address */
+  token_address: string;
+  /** Timestamp for historical price (optional - defaults to current time if not provided) */
+  timestamp?: string;
 } 

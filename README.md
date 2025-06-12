@@ -25,6 +25,21 @@ console.log(txs[0].classificationData.description);
 const tx = await provider.getTranslatedTx('ethereum', '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f');
 console.log(`Transaction description: ${tx.classificationData.description}`);
 
+// Get current token price
+const currentPrice = await provider.getTokenPrice({
+  chain: 'ethereum',
+  token_address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
+});
+console.log(`Current price: ${currentPrice.price.amount} ${currentPrice.price.currency}`);
+
+// Get historical token price
+const historicalPrice = await provider.getTokenPrice({
+  chain: 'ethereum',
+  token_address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', // USDT
+  timestamp: '1749685977'
+});
+console.log(`Historical price: ${historicalPrice.price.amount} ${historicalPrice.price.currency}`);
+
 // Get real-time price updates
 const priceStream = await provider.getTokenPriceTicks({
   chain: 'polygon',
@@ -63,6 +78,25 @@ Gets detailed information about a specific transaction, including human-readable
 ```typescript
 const tx = await provider.getTranslatedTx('ethereum', '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f');
 // Returns: Promise<TranslatedTx>
+```
+
+### `getTokenPrice(params: TokenPriceParams)`
+Retrieves the current or historical price of a token at a specific timestamp. Returns detailed price information including exchange and liquidity data.
+
+```typescript
+// Get current token price
+const currentPrice = await provider.getTokenPrice({
+  chain: 'ethereum',
+  token_address: '0xA0b86a33E6441d8f8C7d8c8E8E8E8E8E8E8E8E8E' // USDT
+});
+
+// Get historical token price
+const historicalPrice = await provider.getTokenPrice({
+  chain: 'ethereum',
+  token_address: '0xA0b86a33E6441d8f8C7d8c8E8E8E8E8E8E8E8E8E', // USDT
+  timestamp: '1640995200' // Unix timestamp
+});
+// Returns: Promise<TokenPrice>
 ```
 
 ### `getTokenPriceTicks(params: TokenPriceTicksParams)`

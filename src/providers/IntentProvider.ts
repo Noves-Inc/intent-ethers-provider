@@ -4,7 +4,7 @@ import { WebSocketSubprovider } from '../internal/transport/WebSocketSubprovider
 import { IntentProviderExtended } from '../types/provider';
 import { createNetworkError, createInvalidResponseError } from '../types/errors';
 import { RecentTxsResponse, TranslatedTx } from '../types/recentTxs';
-import { TokenPriceTick, TokenPriceTicksParams } from '../types/tokenPrice';
+import { TokenPriceTick, TokenPriceTicksParams, TokenPrice, TokenPriceParams } from '../types/tokenPrice';
 import { HistoricalTokenPrice, HistoricalTokenPricesParams } from '../types/historicalTokenPrice';
 import { ChainNewTxsParams } from '../types/chainNewTxs';
 
@@ -244,6 +244,58 @@ export class IntentProvider extends AbstractProvider implements IntentProviderEx
         throw createNetworkError(`Failed to fetch chain new transactions: ${error.message}`);
       }
       throw createInvalidResponseError('Failed to fetch chain new transactions');
+    }
+  }
+
+  /**
+   * Retrieves the current or historical price of a token at a specific timestamp
+   * @param params - The parameters for the token price request
+   * @returns Promise resolving to detailed token price information
+   * @throws {IntentProviderError} If the request fails or response is invalid
+   * 
+   * @remarks
+   * This method fetches the price of a token at the given timestamp, or the current price
+   * if no timestamp is provided. The response includes detailed information about the
+   * pricing source, exchange, and liquidity data.
+   * 
+   * @example
+   * ```typescript
+   * // Get current token price
+   * const currentPrice = await provider.getTokenPrice({
+   *   chain: 'ethereum',
+   *   token_address: '0xA0b86a33E6441d8f8C7d8c8E8E8E8E8E8E8E8E8E'
+   * });
+   * console.log(`Current price: ${currentPrice.price.amount} ${currentPrice.price.currency}`);
+   * 
+   * // Get historical token price
+   * const historicalPrice = await provider.getTokenPrice({
+   *   chain: 'ethereum', 
+   *   token_address: '0xA0b86a33E6441d8f8C7d8c8E8E8E8E8E8E8E8E8E',
+   *   timestamp: '1640995200'
+   * });
+   * console.log(`Price at timestamp: ${historicalPrice.price.amount} ${historicalPrice.price.currency}`);
+   * ```
+   */
+  async getTokenPrice(params: TokenPriceParams): Promise<TokenPrice> {
+    try {
+      const normalizedChain = this.normalizeChainName(params.chain);
+      const requestParams: any = {
+        chain: normalizedChain,
+        token_address: params.token_address,
+        // Use provided timestamp or current timestamp if not provided
+        timestamp: params.timestamp || Math.floor(Date.now() / 1000).toString()
+      };
+
+      return await this.httpProvider.post<TokenPrice>('/intents', {
+        id: 'token-price',
+        params: requestParams,
+        cusRateLimit: -1
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw createNetworkError(`Failed to fetch token price: ${error.message}`);
+      }
+      throw createInvalidResponseError('Failed to fetch token price');
     }
   }
 } 
