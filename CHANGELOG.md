@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2025-06-18
+
+### Added
+- New `getTokensBalances` method to retrieve current token balances for a wallet on any supported chain
+- Added comprehensive type definitions for token balance responses including balance amounts, USD values, and token metadata
+- Added support for both native tokens and ERC-20 tokens with detailed pricing information when available
+- Added unit tests and comprehensive documentation with examples for the new token balances functionality
+- Enhanced API documentation with filtering examples and balance display patterns
+
 ## [0.1.3] - 2025-06-12
 
 ### Added

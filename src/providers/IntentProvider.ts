@@ -7,6 +7,7 @@ import { RecentTxsResponse, TranslatedTx } from '../types/recentTxs';
 import { TokenPriceTick, TokenPriceTicksParams, TokenPrice, TokenPriceParams } from '../types/tokenPrice';
 import { HistoricalTokenPrice, HistoricalTokenPricesParams } from '../types/historicalTokenPrice';
 import { ChainNewTxsParams } from '../types/chainNewTxs';
+import { TokenBalance, TokenBalancesParams } from '../types/tokenBalances';
 
 /**
  * IntentProvider is a custom provider implementation that extends ethers.js AbstractProvider.
@@ -296,6 +297,56 @@ export class IntentProvider extends AbstractProvider implements IntentProviderEx
         throw createNetworkError(`Failed to fetch token price: ${error.message}`);
       }
       throw createInvalidResponseError('Failed to fetch token price');
+    }
+  }
+
+  /**
+   * Retrieves the current token balances for a specific wallet on a given chain
+   * @param params - The parameters for the token balances request
+   * @returns Promise resolving to an array of token balance objects
+   * @throws {IntentProviderError} If the request fails or response is invalid
+   * 
+   * @remarks
+   * This method fetches all token balances for a wallet on the specified chain,
+   * including native tokens and ERC-20 tokens. Each balance includes the token
+   * information, balance amount, and USD value when available.
+   * 
+   * @example
+   * ```typescript
+   * // Get token balances for a wallet
+   * const balances = await provider.getTokensBalances({
+   *   chain: 'ethereum',
+   *   wallet: '0x9b1054d24dc31a54739b6d8950af5a7dbaa56815'
+   * });
+   * 
+   * // Display balances with USD values
+   * balances.forEach(balance => {
+   *   const usdDisplay = balance.usdValue ? `$${balance.usdValue}` : 'N/A';
+   *   console.log(`${balance.token.symbol}: ${balance.balance} (${usdDisplay})`);
+   * });
+   * 
+   * // Filter tokens with significant balances
+   * const significantBalances = balances.filter(balance => 
+   *   balance.usdValue && parseFloat(balance.usdValue) > 1
+   * );
+   * ```
+   */
+  async getTokensBalances(params: TokenBalancesParams): Promise<TokenBalance[]> {
+    try {
+      const normalizedChain = this.normalizeChainName(params.chain);
+      return await this.httpProvider.post<TokenBalance[]>('/intents', {
+        id: 'token-balances',
+        params: {
+          chain: normalizedChain,
+          wallet: params.wallet
+        },
+        cusRateLimit: -1
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw createNetworkError(`Failed to fetch token balances: ${error.message}`);
+      }
+      throw createInvalidResponseError('Failed to fetch token balances');
     }
   }
 } 

@@ -40,6 +40,18 @@ const historicalPrice = await provider.getTokenPrice({
 });
 console.log(`Historical price: ${historicalPrice.price.amount} ${historicalPrice.price.currency}`);
 
+// Get token balances for a wallet
+const balances = await provider.getTokensBalances({
+  chain: 'ethereum',
+  wallet: '0x9b1054d24dc31a54739b6d8950af5a7dbaa56815'
+});
+
+// Display balances with USD values
+balances.forEach(balance => {
+  const usdDisplay = balance.usdValue ? `$${balance.usdValue}` : 'N/A';
+  console.log(`${balance.token.symbol}: ${balance.balance} (${usdDisplay})`);
+});
+
 // Get real-time price updates
 const priceStream = await provider.getTokenPriceTicks({
   chain: 'polygon',
@@ -131,6 +143,29 @@ const txStream = await provider.getChainNewTxs({
   chain: 'ethereum'
 });
 // Returns: AsyncIterable<TranslatedTx>
+```
+
+### `getTokensBalances(params: TokenBalancesParams)`
+Retrieves the current token balances for a specific wallet on a given chain. Returns detailed balance information including native tokens, ERC-20 tokens, and USD values when available.
+
+```typescript
+// Get token balances for a wallet
+const balances = await provider.getTokensBalances({
+  chain: 'ethereum',
+  wallet: '0x9b1054d24dc31a54739b6d8950af5a7dbaa56815'
+});
+
+// Display balances with USD values
+balances.forEach(balance => {
+  const usdDisplay = balance.usdValue ? `$${balance.usdValue}` : 'N/A';
+  console.log(`${balance.token.symbol}: ${balance.balance} (${usdDisplay})`);
+});
+
+// Filter tokens with significant balances
+const significantBalances = balances.filter(balance => 
+  balance.usdValue && parseFloat(balance.usdValue) > 1
+);
+// Returns: Promise<TokenBalance[]>
 ```
 
 ## Error Handling

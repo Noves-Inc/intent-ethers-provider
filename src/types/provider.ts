@@ -3,6 +3,7 @@ import { TranslatedTx } from './recentTxs';
 import { TokenPriceTick, TokenPriceTicksParams, TokenPrice, TokenPriceParams } from './tokenPrice';
 import { HistoricalTokenPrice, HistoricalTokenPricesParams } from './historicalTokenPrice';
 import { ChainNewTxsParams } from './chainNewTxs';
+import { TokenBalance, TokenBalancesParams } from './tokenBalances';
 
 /**
  * Extended provider interface that adds intent-specific functionality
@@ -163,4 +164,31 @@ export interface IntentProviderExtended extends Provider {
    * ```
    */
   getTokenPrice(params: TokenPriceParams): Promise<TokenPrice>;
+
+  /**
+   * Retrieves the current token balances for a specific wallet on a given chain
+   * @param params - The parameters for the token balances request
+   * @returns Promise resolving to an array of token balance objects
+   * @throws {IntentProviderError} If the request fails or response is invalid
+   * 
+   * @remarks
+   * This method fetches all token balances for a wallet on the specified chain,
+   * including native tokens and ERC-20 tokens. Each balance includes the token
+   * information, balance amount, and USD value when available.
+   * 
+   * @example
+   * ```typescript
+   * // Get token balances for a wallet
+   * const balances = await provider.getTokensBalances({
+   *   chain: 'ethereum',
+   *   wallet: '0x9b1054d24dc31a54739b6d8950af5a7dbaa56815'
+   * });
+   * 
+   * // Display balances
+   * balances.forEach(balance => {
+   *   console.log(`${balance.token.symbol}: ${balance.balance} (${balance.usdValue ? '$' + balance.usdValue : 'N/A'})`);
+   * });
+   * ```
+   */
+  getTokensBalances(params: TokenBalancesParams): Promise<TokenBalance[]>;
 } 

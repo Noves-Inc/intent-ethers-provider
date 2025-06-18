@@ -3,6 +3,7 @@ import { IntentProvider } from '../../../src/providers/IntentProvider'
 import { TokenPriceTick, TokenPrice } from '../../../src/types/tokenPrice'
 import { HistoricalTokenPrice } from '../../../src/types/historicalTokenPrice'
 import { TranslatedTx } from '../../../src/types/chainNewTxs'
+import { TokenBalance } from '../../../src/types/tokenBalances'
 
 vi.mock('../../../src/internal/transport/HttpSubprovider', () => {
   return {
@@ -432,6 +433,116 @@ describe('IntentProvider', () => {
         chain: 'ethereum',
         token_address: '0xA0b86a33E6441d8f8C7d8c8E8E8E8E8E8E8E8E8E'
       })).rejects.toThrow('Failed to fetch token price: Network error')
+    })
+  })
+
+  describe('getTokensBalances', () => {
+    it('should fetch token balances for a wallet', async () => {
+      const mockResponse: TokenBalance[] = [
+        {
+          balance: '0.154531375828269479',
+          usdValue: '386.018837415744138',
+          token: {
+            symbol: 'ETH',
+            name: 'Ether',
+            decimals: 18,
+            address: 'ETH',
+            price: '2497.99650942554462'
+          }
+        },
+        {
+          balance: '129.196066522007754429',
+          usdValue: null,
+          token: {
+            symbol: 'ENS',
+            name: 'Ethereum Name Service',
+            decimals: 18,
+            address: '0xc18360217d8f7ab5e7c516566761ea12ce7f9d72',
+            price: null
+          }
+        },
+        {
+          balance: '7.818702000000000041',
+          usdValue: null,
+          token: {
+            symbol: 'COMP',
+            name: 'Compound',
+            decimals: 18,
+            address: '0xc00e94cb662c3520282e6f5717214004a7f26888',
+            price: null
+          }
+        }
+      ]
+
+      // Get the actual HttpSubprovider instance used by IntentProvider
+      const httpProvider = (provider as any).httpProvider
+      
+      // Mock the post method on the actual instance
+      vi.mocked(httpProvider.post).mockResolvedValue(mockResponse)
+
+      const result = await provider.getTokensBalances({
+        chain: 'ethereum',
+        wallet: '0x9b1054d24dc31a54739b6d8950af5a7dbaa56815'
+      })
+
+      expect(result).toEqual(mockResponse)
+      expect(httpProvider.post).toHaveBeenCalledWith('/intents', {
+        id: 'token-balances',
+        params: {
+          chain: 'eth',
+          wallet: '0x9b1054d24dc31a54739b6d8950af5a7dbaa56815'
+        },
+        cusRateLimit: -1
+      })
+    })
+
+    it('should handle network errors', async () => {
+      // Get the actual HttpSubprovider instance used by IntentProvider
+      const httpProvider = (provider as any).httpProvider
+      
+      // Mock the post method to throw an error
+      vi.mocked(httpProvider.post).mockRejectedValue(new Error('Network error'))
+
+      await expect(provider.getTokensBalances({
+        chain: 'ethereum',
+        wallet: '0x9b1054d24dc31a54739b6d8950af5a7dbaa56815'
+      })).rejects.toThrow('Failed to fetch token balances: Network error')
+    })
+
+    it('should normalize chain names correctly', async () => {
+      const mockResponse: TokenBalance[] = [
+        {
+          balance: '1.0',
+          usdValue: '2500.0',
+          token: {
+            symbol: 'ETH',
+            name: 'Ether',
+            decimals: 18,
+            address: 'ETH',
+            price: '2500.0'
+          }
+        }
+      ]
+
+      // Get the actual HttpSubprovider instance used by IntentProvider
+      const httpProvider = (provider as any).httpProvider
+      
+      // Mock the post method on the actual instance
+      vi.mocked(httpProvider.post).mockResolvedValue(mockResponse)
+
+      await provider.getTokensBalances({
+        chain: 'ethereum',
+        wallet: '0x9b1054d24dc31a54739b6d8950af5a7dbaa56815'
+      })
+
+      expect(httpProvider.post).toHaveBeenCalledWith('/intents', {
+        id: 'token-balances',
+        params: {
+          chain: 'eth', // Should be normalized from 'ethereum' to 'eth'
+          wallet: '0x9b1054d24dc31a54739b6d8950af5a7dbaa56815'
+        },
+        cusRateLimit: -1
+      })
     })
   })
 }) 
